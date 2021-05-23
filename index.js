@@ -12,4 +12,22 @@ const paymentsResponse = checkout.paymentMethods({
     shopperLocale: "nl-NL",
     amount: { currency: "EUR", value: 1000, },
     channel: "Web"
+}).then(/*console.log*/);
+
+const axios = require('axios').default;
+
+axios({
+  method: 'post',
+  url: 'https://checkout-test.adyen.com/v1/originKeys',
+  headers: {
+      "x-api-key": config.apiKey,
+      "Content-Type": "application/json"
+  },
+  data: {
+   "originDomains":[
+      "https://www.your-company1.com",
+      "https://www.your-company2.com",
+      "https://www.your-company3.com"
+   ]
+  }
 }).then(console.log);
