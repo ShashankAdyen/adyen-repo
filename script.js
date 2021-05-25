@@ -1,4 +1,4 @@
-function makePayment(data){ // Your function calling your server to make the `/payments` request
+function makePayment(data){
    console.log('makePayment');
    return fetch("http://localhost:8000/api/makePayment", { 
        "method": "POST",
@@ -13,6 +13,7 @@ function makePayment(data){ // Your function calling your server to make the `/p
            "Content-type": "application/json; charset=UTF-8"
        }
    })
+   /*.then(response => response.json())*/
    .then(function(response){
        console.log(response);
        return response.json();
@@ -25,10 +26,6 @@ function makePayment(data){ // Your function calling your server to make the `/p
 
 function showFinalResult(response){
     alert('You did good lad, thanks for the moolah');
-}
-
-function onChange(){
-    console.log("onChange");
 }
 
 function onAdditionalDetails(stateData){
@@ -51,7 +48,6 @@ function onSubmit(state, dropin){
   makePayment(state.data)
     .then(function(response){
       if (response.action) {
-          console.log('are we... gonna handle it though');
           dropin.handleAction(response.action);
       } else {
           showFinalResult(response);
@@ -82,12 +78,13 @@ function getPaymentMethods(){
 
 let adyenCheckoutConfiguration = {
     "paymentMethodsResponse"     : null, // To be provided by the API call
-    "originKey"                  : "pub.v2.8115650120946270.aHR0cDovL2xvY2FsaG9zdDo4MDAw.zkoVizqsv4uttIICWCxh7zQ8yon0QwaISV5QrztZYE4", // Web Drop-in versions before 3.10.1 use originKey instead of clientKey.
+    "originKey"/*"clientKey"*/   : "pub.v2.8115650120946270.aHR0cDovL2xvY2FsaG9zdDo4MDAw.zkoVizqsv4uttIICWCxh7zQ8yon0QwaISV5QrztZYE4",
     "locale"                     : "en-US",
     "environment"                : "test",
     "onSubmit"                   : onSubmit,
-    "onChange"                   : onChange,
-    "onAdditionalDetails"        : onAdditionalDetails
+    "onAdditionalDetails"        : onAdditionalDetails,
+    "onChange"                   : () => console.log('onChange'),
+    "onError"                    : () => console.log('onError' )
 };
 
 getPaymentMethods()
@@ -96,9 +93,7 @@ getPaymentMethods()
             "paymentMethodsResponse": response
         });
         const checkout = new AdyenCheckout(adyenCheckoutConfiguration);
-        const dropin = checkout.create('dropin', {
-                "openFirstPaymentMethod":false
-            })
+        const dropin = checkout.create('dropin')
            .mount('#dropin-container');
     })
     .catch(function(error){
