@@ -13,13 +13,10 @@ function makePayment(data){
            "Content-type": "application/json; charset=UTF-8"
        }
    })
-   /*.then(response => response.json())*/
    .then(function(response){
-       console.log(response);
        return response.json();
    })
    .catch(function(error){
-       console.log('uhh');
        throw Error(error);
    });
 }
@@ -29,7 +26,6 @@ function showFinalResult(response){
 }
 
 function onAdditionalDetails(stateData){
-   console.log('onAdditionalDetails');
    return fetch("http://localhost:8000/api/payment/details", { 
        "method": "POST",
        "body": JSON.stringify(stateData),
