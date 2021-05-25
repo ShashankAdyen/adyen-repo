@@ -1,49 +1,65 @@
-let paymentsResponse; // The `/paymentMethods` response from the server.
-
-function makePayment(){ // Your function calling your server to make the `/payments` request
-    return;
-}
-function showFinalResult(response){ // Your function to show the final result to the shopper
-    return;
-}
-
-let credentials = {
-    key: 'key'
-};
-
-const configuration = {
- paymentMethodsResponse: paymentsResponse,
- clientKey: credentials.key, // Web Drop-in versions before 3.10.1 use originKey instead of clientKey. // TODO
- locale: "en-US",
- environment: "test",
- onSubmit: (state, dropin) => {
-     // Global configuration for onSubmit
-     makePayment(state.data)
-       .then(response => {
-         if (response.action) {
-           dropin.handleAction(response.action); // Drop-in handles the action object from the /payments response
-         } else {
-           showFinalResult(response);
-         }
-       })
-       .catch(error => {
-         throw Error(error);
-       });
-   },
- onAdditionalDetails: (state, dropin) => {
-   makeDetailsCall(state.data) // Your function calling your server to make a `/payments/details` request
-     .then(response => {
-       if (response.action) {
-         dropin.handleAction(response.action); // Drop-in handles the action object from the /payments response
-       } else {
-         showFinalResult(response);
+function makePayment(data){ // Your function calling your server to make the `/payments` request
+   return fetch("http://localhost:8000/api/makePayment", { 
+       "method": "POST",
+       "body": JSON.stringify({
+            "merchantAccount" : "TestAccountNY",
+            "amount"          : { currency: "USD", value: 1000, },
+            "reference"       : "YOUR_ORDER_NUMBER",
+            "paymentMethod"   : data.paymentMethod,
+            "returnUrl"       : "http://localhost:8000"
+       }),
+       "headers": {
+           "Content-type": "application/json; charset=UTF-8"
        }
-     })
-     .catch(error => {
+   })
+   .catch(function(error){
        throw Error(error);
-     });
- },
- paymentMethodsConfiguration: {
+   })
+}
+
+function showFinalResult(response){ // Your function to show the final result to the shopper
+    alert('You did good lad');
+}
+
+function makeDetailsCall(state_dot_data){ // Your function calling your server to make a `/payments/details` request
+    return;
+}
+
+function onChange(){
+    console.log("onChange");
+}
+
+function onAdditionalDetails(stateData){
+   return fetch("http://localhost:8000/api/payment/details", { 
+       "method": "POST",
+       "body": JSON.stringify(stateData),
+       "headers": {
+           "Content-type": "application/json; charset=UTF-8"
+        }
+   })
+   .then(response => response.json())
+   .catch(function(error){
+      throw Error(error);
+   });
+}
+
+function onSubmit(state, dropin){
+  makePayment(state.data)
+    .then(function(response){
+      console.log(response.action);
+      if (response.action) {
+          dropin.handleAction(response.action);
+          // handle it??? TODO
+      } else {
+          showFinalResult(response);
+      }
+    })
+    .catch(error => {
+      throw Error(error);
+    });
+}
+
+let paymentMethodsConfiguration = {
    card: { // Example optional configuration for Cards
      hasHolderName: true,
      holderNameRequired: true,
@@ -53,14 +69,45 @@ const configuration = {
      onSubmit: () => {}, // onSubmit configuration for card payments. Overrides the global configuration.
    }
  }
+
+function getPaymentMethods(){
+   return fetch("http://localhost:8000/api/getPaymentMethods", { 
+       "method": "POST",
+       "body": JSON.stringify({
+           "merchantAccount": "TestAccountNY"
+       }),
+       "headers": {
+           "Content-type": "application/json; charset=UTF-8"
+        }
+   })
+   .then(response => response.json())
+   .catch(function(error){
+      throw Error(error);
+   });
+}
+
+let adyenCheckoutConfiguration = {
+    "paymentMethodsResponse"     : null, // To be provided by the API call
+    "originKey"                  : "pub.v2.8115650120946270.aHR0cDovL2xvY2FsaG9zdDo4MDAw.zkoVizqsv4uttIICWCxh7zQ8yon0QwaISV5QrztZYE4", // Web Drop-in versions before 3.10.1 use originKey instead of clientKey.
+    "locale"                     : "en-US",
+    "environment"                : "test",
+    "onSubmit"                   : onSubmit,
+    "onChange"                   : onChange,
+    "onAdditionalDetails"        : onAdditionalDetails,
+    "paymentMethodsConfiguration": paymentMethodsConfiguration 
 };
 
-const checkout2 = new AdyenCheckout(configuration);
-const dropin = checkout2
-    .create('dropin', {
-    // Starting from version 4.0.0, Drop-in configuration only accepts props related to itself and cannot contain generic configuration like the onSubmit event.
-        openFirstPaymentMethod:false
+getPaymentMethods()
+    .then(function(response){
+        Object.assign(adyenCheckoutConfiguration, {
+            "paymentMethodsResponse": response
+        });
+        const checkout = new AdyenCheckout(adyenCheckoutConfiguration);
+        const dropin = checkout.create('dropin', {
+                "openFirstPaymentMethod":false
+            })
+           .mount('#dropin-container');
     })
-   .mount('#dropin-container');
-
-console.log('noice');
+    .catch(function(error){
+        throw Error(error);
+    });
