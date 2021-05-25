@@ -1,4 +1,5 @@
 function makePayment(data){ // Your function calling your server to make the `/payments` request
+   console.log('makePayment');
    return fetch("http://localhost:8000/api/makePayment", { 
        "method": "POST",
        "body": JSON.stringify({
@@ -12,17 +13,18 @@ function makePayment(data){ // Your function calling your server to make the `/p
            "Content-type": "application/json; charset=UTF-8"
        }
    })
-   .catch(function(error){
-       throw Error(error);
+   .then(function(response){
+       console.log(response);
+       return response.json();
    })
+   .catch(function(error){
+       console.log('uhh');
+       throw Error(error);
+   });
 }
 
-function showFinalResult(response){ // Your function to show the final result to the shopper
-    alert('You did good lad');
-}
-
-function makeDetailsCall(state_dot_data){ // Your function calling your server to make a `/payments/details` request
-    return;
+function showFinalResult(response){
+    alert('You did good lad, thanks for the moolah');
 }
 
 function onChange(){
@@ -30,6 +32,7 @@ function onChange(){
 }
 
 function onAdditionalDetails(stateData){
+   console.log('onAdditionalDetails');
    return fetch("http://localhost:8000/api/payment/details", { 
        "method": "POST",
        "body": JSON.stringify(stateData),
@@ -44,12 +47,12 @@ function onAdditionalDetails(stateData){
 }
 
 function onSubmit(state, dropin){
+  console.log('onSubmit');
   makePayment(state.data)
     .then(function(response){
-      console.log(response.action);
       if (response.action) {
+          console.log('are we... gonna handle it though');
           dropin.handleAction(response.action);
-          // handle it??? TODO
       } else {
           showFinalResult(response);
       }
@@ -59,18 +62,8 @@ function onSubmit(state, dropin){
     });
 }
 
-let paymentMethodsConfiguration = {
-   card: { // Example optional configuration for Cards
-     hasHolderName: true,
-     holderNameRequired: true,
-     enableStoreDetails: true,
-     hideCVC: false,
-     name: 'Credit or debit card',
-     onSubmit: () => {}, // onSubmit configuration for card payments. Overrides the global configuration.
-   }
- }
-
 function getPaymentMethods(){
+    console.log('getPaymentMethods');
    return fetch("http://localhost:8000/api/getPaymentMethods", { 
        "method": "POST",
        "body": JSON.stringify({
@@ -80,6 +73,7 @@ function getPaymentMethods(){
            "Content-type": "application/json; charset=UTF-8"
         }
    })
+   .then(function(r){console.log(r); return r})
    .then(response => response.json())
    .catch(function(error){
       throw Error(error);
@@ -93,8 +87,7 @@ let adyenCheckoutConfiguration = {
     "environment"                : "test",
     "onSubmit"                   : onSubmit,
     "onChange"                   : onChange,
-    "onAdditionalDetails"        : onAdditionalDetails,
-    "paymentMethodsConfiguration": paymentMethodsConfiguration 
+    "onAdditionalDetails"        : onAdditionalDetails
 };
 
 getPaymentMethods()

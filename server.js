@@ -10,6 +10,11 @@ client.setEnvironment("TEST");
 const checkout                      = new CheckoutAPI(client);
 const bodyParser                    = require('body-parser');
 
+function handleError(error){
+    console.log(error);
+    return Error(error);
+}
+
 app.use(bodyParser.json());
 
 app.get('/', function(req,res){
@@ -28,40 +33,39 @@ app.get('/script.js', function(req,res){
 });
 
 app.post('/api/getPaymentMethods', function(req, res){
+    console.log('/api/getPaymentMethods');
     checkout.paymentMethods(req.body)
         .then(function(response){
             res.json(response);
         })
-        .catch(function(error){
-            throw Error(error);
-        });
+        .catch(handleError);
 });
 
 app.post('/api/makePayment', function(req, res){
+    console.log('/api/makePayment');
     checkout.payments(req.body)
         .then(function(response){
             res.json(response);
         })
-        .catch(function(error){
-            throw Error(error)
-        });
+        .catch(handleError);
 });
 
 app.post('/api/payments/details', function(req, res){
-    checkout.paymentsDetails(STATE_DATA)
+    console.log('/api/payments/details');
+    checkout.paymentsDetails(req.body)
         .then(function(response){
             res.json(response);    
         })
-        .catch(function(error){
-            throw Error(error);
-        });
+        .catch(handleError);
 });
 
 app.post/*and .get*/('/api/handleShopperRedirect', function(req, res){
+    console.log('/api/handleShopperRedirect');
 
 });
 
 app.post('/api/submitAdditonalDetails', function(req, res){
+    console.log('/api/submitAdditonalDetails');
 
 });
 
